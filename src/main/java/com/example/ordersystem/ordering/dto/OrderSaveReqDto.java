@@ -8,7 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 
 @Builder
 @Data
@@ -18,7 +19,10 @@ public class OrderSaveReqDto {
 //    private Long memberId;
 //    private List<OrderDetailDto> orderDetailDtoList;
 //    private OrderStatus orderStatus;
+    @NotNull(message = "productId is essential")
     private Long productId;
+
+    @Positive(message = "productCount must be positive")
     private int productCount;
 
 //

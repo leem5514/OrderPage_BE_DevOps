@@ -23,7 +23,7 @@ Spring Boot 기반 주문 서비스 백엔드입니다.
 ./gradlew bootJar
 ```
 
-현재 테스트는 실제 MariaDB 설정에 의존하므로, 다음 단계에서 test profile 또는 Testcontainers 기반으로 안정화합니다.
+테스트는 `test` profile에서 H2 in-memory database를 사용합니다. CI에서도 외부 MariaDB 없이 기본 Spring context 검증이 가능합니다.
 
 ## Local Docker Compose
 
@@ -66,3 +66,16 @@ AWS_S3_BUCKET=order-system-bucket
 - Redis 기반 재고 차감 전후 비교
 - RabbitMQ consumer 수에 따른 queue lag 비교
 - HPA 적용 전후 error rate 비교
+
+## Observability
+
+Spring Boot Actuator와 Prometheus registry를 추가했습니다.
+
+노출 대상:
+
+- `/actuator/health`
+- `/actuator/info`
+- `/actuator/metrics`
+- `/actuator/prometheus`
+
+Prometheus/Grafana 연동은 Infra 레포지토리에서 진행합니다.

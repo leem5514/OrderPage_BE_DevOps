@@ -42,8 +42,8 @@ public class Member {
         this.name = name;
         this.email = email;
         this.password = password;
-        this.address = new Address(city, street, zipcode);
-        this.role = role;
+        this.address = address != null ? address : new Address(city, street, zipcode);
+        this.role = role == null ? Role.USER : role;
         this.createdTime = LocalDateTime.now();
     }
 

@@ -7,10 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.Size;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -29,6 +27,7 @@ public class MemberSaveDto {
 //    private String city;
 //    private String street;
 //    private String zipcode;
+    @Builder.Default
     private Role role = Role.USER;
 
     public Member toEntity(String password) {
@@ -38,7 +37,7 @@ public class MemberSaveDto {
                 .password(password)
 //                .address(Address.builder().city(this.city).street(this.street).zipcode(this.zipcode).build())
                 .address(this.address)
-                .role(this.role)
+                .role(this.role == null ? Role.USER : this.role)
                 .build();
         return member;
     }

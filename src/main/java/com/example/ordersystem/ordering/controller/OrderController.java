@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -24,7 +25,7 @@ public class OrderController {
     }
 
     @PostMapping("/order/create") // 생성
-    public ResponseEntity<?> orderingCreate(@RequestBody List<OrderSaveReqDto> dto) {
+    public ResponseEntity<?> orderingCreate(@RequestBody List<@Valid OrderSaveReqDto> dto) {
         Ordering ordering = orderingService.orderCreate(dto);
         CommonResDto commonResDto = new CommonResDto(HttpStatus.CREATED, "created order", ordering.getId());
         return new ResponseEntity<>(commonResDto, HttpStatus.CREATED);

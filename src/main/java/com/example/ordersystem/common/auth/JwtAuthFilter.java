@@ -5,7 +5,6 @@ import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -28,12 +27,6 @@ public class JwtAuthFilter extends GenericFilter {
     @Value("${jwt.secretKey}")
     private String secretKey;
 
-    private final HttpServletResponse httpServletResponse;
-
-    public JwtAuthFilter(HttpServletResponse httpServletResponse) {
-        this.httpServletResponse = httpServletResponse;
-    }
-
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain) throws IOException, ServletException {
         String bearerToken = ((HttpServletRequest) request).getHeader("Authorization");
@@ -41,8 +34,8 @@ public class JwtAuthFilter extends GenericFilter {
             if (bearerToken != null) {
                 // 토큰 있으면 처리, 없음 에러
                 // token 관례적으로 Bearer로 시작하는 문구를 넣어서 요청
-                if (!bearerToken.substring(0, 7).equals("Bearer ")) {
-                    throw new AuthenticationServiceException("Bearer 형식이 아닙니다.");
+                if (!bearerToken.startsWith("Bearer ")) {
+                    throw new IllegalArgumentException("Bearer 형식이 아닙니다.");
                 }
                 String token = bearerToken.substring(7);
                 // token 검증 및 claim(사용자정보) 추출
