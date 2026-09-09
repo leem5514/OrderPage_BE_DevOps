@@ -27,6 +27,8 @@ Spring Boot 기반 주문 서비스 백엔드입니다.
 
 ## Local Docker Compose
 
+Docker Desktop을 먼저 실행한 뒤 아래 명령을 실행합니다.
+
 ```bash
 docker compose up -d
 ```
@@ -37,6 +39,23 @@ docker compose up -d
 - MariaDB
 - Redis
 - RabbitMQ Management
+
+Smoke test:
+
+```powershell
+.\scripts\compose-smoke.ps1
+```
+
+검증 대상:
+
+- `/actuator/health`
+- `/product/list`
+
+정리:
+
+```bash
+docker compose down
+```
 
 ## Environment Variables
 
