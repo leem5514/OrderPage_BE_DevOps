@@ -67,6 +67,8 @@ DB_USERNAME=root
 DB_PASSWORD=change-me
 REDIS_HOST=localhost
 RABBITMQ_HOST=localhost
+RABBITMQ_PORT=5672
+RABBITMQ_SSL_ENABLED=false
 JWT_SECRET_KEY=change-me
 JWT_SECRET_KEY_RT=change-me
 AWS_ACCESS_KEY=change-me
@@ -74,6 +76,8 @@ AWS_SECRET_KEY=change-me
 AWS_REGION=ap-northeast-2
 AWS_S3_BUCKET=order-system-bucket
 ```
+
+Amazon MQ for RabbitMQ를 사용할 때는 `RABBITMQ_PORT=5671`, `RABBITMQ_SSL_ENABLED=true`로 설정합니다.
 
 ## DevOps Metrics
 

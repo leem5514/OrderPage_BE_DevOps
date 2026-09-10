@@ -19,6 +19,8 @@ spring:
     username: ${RABBITMQ_USERNAME:guest}
     password: ${RABBITMQ_PASSWORD:guest}
     virtual-host: ${RABBITMQ_VHOST:/}
+    ssl:
+      enabled: ${RABBITMQ_SSL_ENABLED:false}
     listener:
       simple:
         # 재고 반영 큐 컨슈머를 여러 개 띄워서 부하테스트 때 RDB 재고 반영이 뒤로 밀리는 걸 줄인다.

@@ -36,6 +36,8 @@ public class RabbitMqConfig {
     private String password;
     @Value("${spring.rabbitmq.virtual-host}")
     private String virtualHost;
+    @Value("${spring.rabbitmq.ssl.enabled:false}")
+    private boolean sslEnabled;
 
     @Bean
     public DirectExchange stockExchange() {
@@ -71,13 +73,17 @@ public class RabbitMqConfig {
     }
 
     @Bean
-    public ConnectionFactory connectionFactory() {
+    public ConnectionFactory connectionFactory() throws Exception {
         CachingConnectionFactory factory = new CachingConnectionFactory();
         factory.setHost(host);
         factory.setPort(port);
         factory.setUsername(username);
         factory.setPassword(password);
         factory.setVirtualHost(virtualHost);
+        if (sslEnabled) {
+            // Amazon MQ for RabbitMQ는 AMQPS(5671)를 사용하므로 배포 환경에서는 SSL을 켠다.
+            factory.getRabbitConnectionFactory().useSslProtocol();
+        }
         return factory;
     }
 
