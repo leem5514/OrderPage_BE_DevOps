@@ -54,6 +54,7 @@ services:
       RABBITMQ_USERNAME: 'guest'
       RABBITMQ_PASSWORD: 'guest'
       RABBITMQ_VHOST: '/'
+      ORDER_STOCK_PROCESSING_MODE: '${ORDER_STOCK_PROCESSING_MODE:-REDIS_ASYNC}'
       JWT_SECRET_KEY: 'local_dev_secret_key_change_me'
       JWT_SECRET_KEY_RT: 'local_dev_refresh_secret_change_me'
       # 실제 S3를 쓰려면 아래 3개만 진짜 값으로 채우면 코드 변경 없이 그대로 동작한다.

@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +18,7 @@ import javax.persistence.EntityNotFoundException;
 // (Redis 는 응답 속도를 위한 실시간 재고, RDB 는 최종 정합성을 위한 기준 데이터)
 @Slf4j
 @Component
+@ConditionalOnProperty(name = "order.stock-processing-mode", havingValue = "REDIS_ASYNC", matchIfMissing = true)
 public class StockDecreaseEventHandler {
 
     private final RabbitTemplate rabbitTemplate;

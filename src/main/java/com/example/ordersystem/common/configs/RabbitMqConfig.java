@@ -10,12 +10,14 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 // 주문 시 재고 차감을 비동기로 RDB에 반영하기 위한 RabbitMQ 설정.
 // 처리 중 예외가 나면 실패 메시지는 DLQ 로 보내 유실 없이 추적할 수 있게 한다.
 @Configuration
+@ConditionalOnProperty(name = "order.stock-processing-mode", havingValue = "REDIS_ASYNC", matchIfMissing = true)
 public class RabbitMqConfig {
 
     public static final String STOCK_EXCHANGE = "stock.exchange";

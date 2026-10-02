@@ -69,6 +69,7 @@ REDIS_HOST=localhost
 RABBITMQ_HOST=localhost
 RABBITMQ_PORT=5672
 RABBITMQ_SSL_ENABLED=false
+ORDER_STOCK_PROCESSING_MODE=REDIS_ASYNC
 JWT_SECRET_KEY=change-me
 JWT_SECRET_KEY_RT=change-me
 AWS_ACCESS_KEY=change-me
@@ -78,6 +79,17 @@ AWS_S3_BUCKET=order-system-bucket
 ```
 
 Amazon MQ for RabbitMQ를 사용할 때는 `RABBITMQ_PORT=5671`, `RABBITMQ_SSL_ENABLED=true`로 설정합니다.
+
+### Stock Processing Comparison
+
+`ORDER_STOCK_PROCESSING_MODE`로 동일한 주문 API의 재고 처리 방식만 전환합니다.
+
+| 값 | 비교군 | 처리 방식 |
+|---|---|---|
+| `RDB_SYNC` | Before | RDB 비관적 행 잠금 안에서 재고 검증과 차감을 동기 처리 |
+| `REDIS_ASYNC` | After | Redis Lua 원자 차감 후 RabbitMQ를 통해 RDB에 비동기 반영 |
+
+실험할 때는 모드마다 같은 상품·재고·VU·실행시간을 사용하고, 실행 사이에 DB와 Redis를 초기화합니다. 비교 지표는 주문 TPS, p95/p99, 오류율, 초과 판매 수, DB Lock 대기시간이며 `REDIS_ASYNC`에서는 Queue Lag와 최종 RDB/Redis 재고 일치 여부도 기록합니다.
 
 ## DevOps Metrics
 

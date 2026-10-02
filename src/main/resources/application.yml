@@ -84,3 +84,8 @@ cloud:
 # 콤마로 구분된 허용 origin 목록 (프론트 로컬 개발 서버 포함)
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:8081,http://localhost:8092,https://www.dding.shop}
+
+order:
+  # 성능 비교 스위치: RDB_SYNC(Before) 또는 REDIS_ASYNC(After).
+  # 같은 주문 API에서 재고 처리 방식만 바꿔 TPS, p95/p99, DB Lock, Queue Lag를 비교한다.
+  stock-processing-mode: ${ORDER_STOCK_PROCESSING_MODE:REDIS_ASYNC}

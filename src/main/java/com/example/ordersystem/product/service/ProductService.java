@@ -1,7 +1,7 @@
 package com.example.ordersystem.product.service;
 
-import com.example.ordersystem.common.service.StockInventoryService;
 import com.example.ordersystem.ordering.repository.OrderDetailRepository;
+import com.example.ordersystem.ordering.service.stock.StockProcessor;
 import com.example.ordersystem.product.domain.Product;
 import com.example.ordersystem.product.dto.ProductListResDto;
 import com.example.ordersystem.product.dto.ProductSaveDto;
@@ -32,13 +32,13 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final S3Client s3Client;
-    private final StockInventoryService stockInventoryService;
+    private final StockProcessor stockProcessor;
 
-    public ProductService(ProductRepository productRepository, OrderDetailRepository orderDetailRepository, S3Client s3Client, StockInventoryService stockInventoryService) {
+    public ProductService(ProductRepository productRepository, OrderDetailRepository orderDetailRepository, S3Client s3Client, StockProcessor stockProcessor) {
         this.productRepository = productRepository;
         this.orderDetailRepository = orderDetailRepository;
         this.s3Client = s3Client;
-        this.stockInventoryService = stockInventoryService;
+        this.stockProcessor = stockProcessor;
     }
 
     // 상품 등록 : 이미지를 로컬 디스크에 거치지 않고 바로 S3로 업로드한다.
@@ -62,8 +62,8 @@ public class ProductService {
             throw new RuntimeException("이미지 저장 실패 !"); // 트랜잭션 처리를 위해 예외 잡아주기
         }
 
-        // 모든 상품의 재고를 Redis에도 시딩해서, 주문 시 원자적 차감(StockInventoryService)이 가능하게 한다.
-        stockInventoryService.increaseStock(product.getId(), dto.getStockQuantity());
+        // Redis 모드에서만 실시간 재고 키를 시딩하며 RDB 모드에서는 추가 작업이 없다.
+        stockProcessor.initialize(product);
         return product;
     }
 
@@ -93,7 +93,7 @@ public class ProductService {
             throw new IllegalArgumentException("이미 주문 이력이 있는 상품은 삭제할 수 없습니다.");
         }
         productRepository.delete(product);
-        stockInventoryService.removeStock(id);
+        stockProcessor.remove(id);
     }
 
 }

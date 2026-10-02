@@ -37,3 +37,7 @@ cloud:
 
 cors:
   allowed-origins: http://localhost:8081
+
+order:
+  # 기본 테스트는 외부 Redis/RabbitMQ가 필요 없는 Before 경로로 실행한다.
+  stock-processing-mode: RDB_SYNC
