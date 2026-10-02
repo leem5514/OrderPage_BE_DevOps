@@ -24,6 +24,10 @@ public class SecurityConfigs {
                 .httpBasic().disable()
                 .authorizeRequests()
                 // 자격 부여할 때 여기만 손 대면 되니까 주로 여기만 수정하게 됨.
+                // Kubernetes Probe와 ALB가 로그인 없이 애플리케이션 상태를 확인할 수 있어야 한다.
+                // Prometheus 지표는 외부 노출을 막기 위해 여기서 허용하지 않는다.
+                .antMatchers("/actuator/health", "/actuator/health/**")
+                .permitAll()
                 .antMatchers("/", "/member/create", "/doLogin", "/refresh-token" , "/product/list", "/member/reset-password")
                 .permitAll()
                 .anyRequest().authenticated()
