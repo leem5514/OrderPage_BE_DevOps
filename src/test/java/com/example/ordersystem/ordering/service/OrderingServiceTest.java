@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -25,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -48,6 +50,7 @@ class OrderingServiceTest {
     void setUp() {
         orderingService = new OrderingService(
                 orderingRepository, memberRepository, stockProcessor, sseController);
+        ReflectionTestUtils.setField(orderingService, "adminEmail", "operator@example.test");
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken("buyer@test.com", null, Collections.emptyList()));
     }
@@ -70,6 +73,7 @@ class OrderingServiceTest {
         verify(stockProcessor).decrease(product, 2);
         verify(orderingRepository).save(any(Ordering.class));
         verify(stockProcessor).completeDecrease(1L, 2);
+        verify(sseController).publishMessage(any(), eq("operator@example.test"), eq("ordered"));
     }
 
     @Test

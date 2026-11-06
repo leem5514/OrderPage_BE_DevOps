@@ -13,6 +13,7 @@ import com.example.ordersystem.ordering.repository.OrderingRepository;
 import com.example.ordersystem.ordering.service.stock.StockProcessor;
 import com.example.ordersystem.product.domain.Product;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +31,10 @@ public class OrderingService {
     private final MemberRepository memberRepository;
     private final StockProcessor stockProcessor;
     private final SseController sseController;
+
+    // 초기 관리자 이메일과 동일한 설정을 사용해야 변경된 관리자에게 주문 알림이 도착한다.
+    @Value("${app.admin-email}")
+    private String adminEmail;
 
 
     @Autowired
@@ -85,7 +90,7 @@ public class OrderingService {
 
             pendingStockDecreases.forEach(event ->
                     stockProcessor.completeDecrease(event.getProductId(), event.getProductCount()));
-            sseController.publishMessage(savedOrder.fromEntityList(), "admin@test.com", "ordered");
+            sseController.publishMessage(savedOrder.fromEntityList(), adminEmail, "ordered");
             return savedOrder;
         } catch (RuntimeException e) {
             // Redis 구현은 이미 차감한 재고를 복구하고, RDB 구현은 no-op 후 트랜잭션이 변경을 롤백한다.

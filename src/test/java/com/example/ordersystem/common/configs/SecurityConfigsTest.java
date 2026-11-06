@@ -6,6 +6,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import com.example.ordersystem.member.repository.MemberRepository;
+import com.example.ordersystem.member.domain.Role;
+import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -21,6 +28,25 @@ class SecurityConfigsTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private MemberRepository memberRepository;
+
+    @Test
+    @Transactional
+    void publicSignupCannotGrantAdminRole() throws Exception {
+        mockMvc.perform(post("/member/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"audit\",\"email\":\"role-check@example.test\",\"password\":\"audit-password-123\",\"role\":\"ADMIN\"}"))
+                .andExpect(status().isCreated());
+        assertThat(memberRepository.findByEmail("role-check@example.test").orElseThrow().getRole())
+                .isEqualTo(Role.USER);
+    }
+
+    @Test
+    void startupDoesNotCreateKnownAdminCredentials() {
+        assertThat(memberRepository.findByEmail("admin@test.com")).isEmpty();
+    }
 
     @Test
     void healthEndpointAllowsAnonymousHealthChecks() throws Exception {
