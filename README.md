@@ -4,6 +4,8 @@ Spring Boot 기반 주문 서비스 백엔드입니다.
 
 2026-11-06 새 요구사항에 따른 변경·검증·남은 배포 조건은 [배포 점검 기록](docs/deployment-readiness.md)을 참고하세요. 아직 AWS 배포 완료 상태가 아닙니다.
 
+Java 11/Linux 이미지 빌드와 로컬 서비스 통합 확인 13개는 [Docker 실기동 기록](docs/container-verification.md)에 정리했습니다. 기존 개발 DB를 보존하는 `compose.verify.yaml`과 `scripts/container-smoke.mjs`로 재현할 수 있습니다.
+
 이 레포지토리는 DevOps 포트폴리오의 애플리케이션 배포 대상입니다. Jenkins에서 테스트와 Docker 이미지 빌드를 수행하고, 이미지는 Amazon ECR에 push한 뒤 Infra 레포지토리의 Kubernetes manifest를 통해 EKS에 배포합니다.
 
 ## Tech Stack

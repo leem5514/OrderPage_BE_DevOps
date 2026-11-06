@@ -53,8 +53,8 @@ docker compose config --quiet
 - 보안 테스트 추가 후 기존 코드에서 ADMIN 가입/기본 관리자 생성 2개 실패 재현.
 - 수정 후 전체 20개 테스트, bootJar, Compose 구성 검사 성공.
 - H2/mock 기반 검증이다. 실제 MariaDB/ElastiCache/MQ/S3 왕복 검증을 대신하지 않는다.
-- Docker Desktop Linux 엔진 pipe가 없어 Docker build/Compose 기동은 수행하지 못했다. Dockerfile의 Java 11/Linux 런타임 검증도 남아 있다.
-- 기본 실행의 DB/Redis/MQ 연결, 로그인·주문·업로드, IRSA STS와 TLS handshake는 서비스 준비 후 확인한다.
+- 최초 점검 당시 Docker Desktop Linux 엔진 pipe가 없어 Docker 기동은 미실행이었다. 이후 사용자가 엔진을 켠 뒤 Java 11/Linux 빌드와 실기동·통합 확인 13개를 완료했다. [추가 검증 기록](container-verification.md)을 참고한다.
+- 로컬 DB/Redis/MQ와 로그인·주문은 추가 검증에서 확인했다. AWS 관리형 연결, 업로드, IRSA STS와 TLS handshake는 아직 미검증이다.
 
 ## 다음 인프라 단계의 배포 조건
 
