@@ -2,6 +2,12 @@
 
 Spring Boot 기반 주문 서비스 백엔드입니다.
 
+2026-11-06 새 요구사항에 따른 변경·검증·남은 배포 조건은 [배포 점검 기록](docs/deployment-readiness.md)을 참고하세요. 아직 AWS 배포 완료 상태가 아닙니다.
+
+Java 11/Linux 이미지 빌드와 로컬 서비스 통합 확인 13개는 [Docker 실기동 기록](docs/container-verification.md)에 정리했습니다. 기존 개발 DB를 보존하는 `compose.verify.yaml`과 `scripts/container-smoke.mjs`로 재현할 수 있습니다.
+
+이어 [종료 처리·readiness/liveness 검증](docs/lifecycle-readiness.md)을 완료했습니다. 실제 DB 중지/복구와 SSE가 열린 상태의 SIGTERM 종료를 `scripts/lifecycle-smoke.mjs`로 확인합니다.
+
 이 레포지토리는 DevOps 포트폴리오의 애플리케이션 배포 대상입니다. Jenkins에서 테스트와 Docker 이미지 빌드를 수행하고, 이미지는 Amazon ECR에 push한 뒤 Infra 레포지토리의 Kubernetes manifest를 통해 EKS에 배포합니다.
 
 ## Tech Stack
@@ -72,15 +78,15 @@ RABBITMQ_SSL_ENABLED=false
 ORDER_STOCK_PROCESSING_MODE=REDIS_ASYNC
 JWT_SECRET_KEY=change-me
 JWT_SECRET_KEY_RT=change-me
-AWS_ACCESS_KEY=change-me
-AWS_SECRET_KEY=change-me
+AWS_ACCESS_KEY_ID=change-me
+AWS_SECRET_ACCESS_KEY=change-me
 AWS_REGION=ap-northeast-2
 AWS_S3_BUCKET=order-system-bucket
 ```
 
 Amazon MQ for RabbitMQ를 사용할 때는 `RABBITMQ_PORT=5671`, `RABBITMQ_SSL_ENABLED=true`로 설정합니다.
 
-### Stock Processing Comparison
+### 기존 재고 처리 모드 (이번 실험에서는 고정)
 
 `ORDER_STOCK_PROCESSING_MODE`로 동일한 주문 API의 재고 처리 방식만 전환합니다.
 
@@ -89,18 +95,17 @@ Amazon MQ for RabbitMQ를 사용할 때는 `RABBITMQ_PORT=5671`, `RABBITMQ_SSL_E
 | `RDB_SYNC` | Before | RDB 비관적 행 잠금 안에서 재고 검증과 차감을 동기 처리 |
 | `REDIS_ASYNC` | After | Redis Lua 원자 차감 후 RabbitMQ를 통해 RDB에 비동기 반영 |
 
-실험할 때는 모드마다 같은 상품·재고·VU·실행시간을 사용하고, 실행 사이에 DB와 Redis를 초기화합니다. 비교 지표는 주문 TPS, p95/p99, 오류율, 초과 판매 수, DB Lock 대기시간이며 `REDIS_ASYNC`에서는 Queue Lag와 최종 RDB/Redis 재고 일치 여부도 기록합니다.
+위 모드는 기존 기능입니다. 새 프로젝트에서는 REDIS_ASYNC를 고정하고 배포/운영 조건만 비교합니다. 재고 알고리즘 개선이나 모드 간 성능 비교는 수행하지 않습니다.
 
 ## DevOps Metrics
 
-이 백엔드는 다음 지표를 만들기 좋은 구조입니다.
+이번 프로젝트의 비교 실험은 다음과 같습니다.
 
-- 동시 주문 TPS
-- p95/p99 API latency
-- oversell 발생 여부
-- Redis 기반 재고 차감 전후 비교
-- RabbitMQ consumer 수에 따른 queue lag 비교
-- HPA 적용 전후 error rate 비교
+- Recreate vs RollingUpdate + readiness: 배포 실패율과 중단 시간
+- 수동 배포 vs Jenkins + Argo CD: 배포 시간, 실패율, 복구 시간
+- 고정 자원 vs 실측 requests: CPU/메모리, p95, 처리량
+- 고정 replicas vs HPA: p95, RPS, 5xx, 증설 시간
+- CloudWatch + SNS: 장애 발생부터 탐지·수신·복구까지의 시간
 
 ## Observability
 

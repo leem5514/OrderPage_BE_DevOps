@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
@@ -25,6 +26,26 @@ public class RedisConfig {
     @Value("${spring.redis.port}")
     public int port;
 
+    @Value("${spring.redis.password:}")
+    private String password;
+    @Value("${spring.redis.ssl:false}")
+    private boolean sslEnabled;
+
+    // 직접 만든 세 연결 팩토리 모두에 동일한 TLS/인증을 적용한다.
+    // Spring Boot 속성만 설정하고 여기서 읽지 않으면 ElastiCache 연결에 반영되지 않는다.
+    private LettuceConnectionFactory connectionFactory(int database) {
+        RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration(host, port);
+        configuration.setDatabase(database);
+        if (!password.isEmpty()) {
+            configuration.setPassword(password);
+        }
+        LettuceClientConfiguration.LettuceClientConfigurationBuilder client = LettuceClientConfiguration.builder();
+        if (sslEnabled) {
+            client.useSsl(); // 기본 인증서 검증을 유지한다.
+        }
+        return new LettuceConnectionFactory(configuration, client.build());
+    }
+
 
 
     @Bean
@@ -32,11 +53,7 @@ public class RedisConfig {
     // RedisConnectionFactory 는 Redis 서버와의 연결을 설정하는 역할.
     // LettuceConnectionFactory 는 RedisConnectionFactory 의 구현체로서 실질적인 역할 수행.
     public RedisConnectionFactory redisConnectionFactory(){
-        RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration();
-        configuration.setHostName(host);
-        configuration.setPort(port);
-        configuration.setDatabase(1); // 1번 db 사용하겠다!
-        return new LettuceConnectionFactory(configuration);
+        return connectionFactory(1);
     }
 
     // redisTemplate 은 redis 와 상호작용할 때 redis key, value 의 형식을 정의.
@@ -53,11 +70,7 @@ public class RedisConfig {
     @Bean
     @Qualifier("3")
     public RedisConnectionFactory redisStockFactory(){
-        RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration();
-        configuration.setHostName(host);
-        configuration.setPort(port);
-        configuration.setDatabase(2); // 1번 db 사용하겠다!
-        return new LettuceConnectionFactory(configuration);
+        return connectionFactory(2);
     }
 
     // redisTemplate 은 redis 와 상호작용할 때 redis key, value 의 형식을 정의.
@@ -75,12 +88,7 @@ public class RedisConfig {
     @Bean
     @Qualifier("4")
     public RedisConnectionFactory sseFactory(){
-        RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration();
-        configuration.setHostName(host);
-        configuration.setPort(port);
-        // 3번 db 사용
-        configuration.setDatabase(3);
-        return new LettuceConnectionFactory(configuration);
+        return connectionFactory(3);
     }
     @Bean
     @Qualifier("4")

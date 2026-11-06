@@ -4,6 +4,7 @@ import com.example.ordersystem.common.auth.JwtTokenProvider;
 import com.example.ordersystem.common.dto.CommonErrorDto;
 import com.example.ordersystem.common.dto.CommonResDto;
 import com.example.ordersystem.member.domain.Member;
+import com.example.ordersystem.member.domain.Role;
 import com.example.ordersystem.member.dto.MemberListDto;
 import com.example.ordersystem.member.dto.MemberLoginDto;
 import com.example.ordersystem.member.dto.MemberRefreshDto;
@@ -58,6 +59,9 @@ public class MemberController {
 
     @PostMapping("/member/create") // 생성
     public ResponseEntity<Object> memberCreate(@Valid @RequestBody MemberSaveDto dto) {
+        // 공개 회원가입에서는 클라이언트가 보낸 ADMIN 권한을 신뢰하지 않는다.
+        // 관리자는 공개 API가 아닌 별도의 초기화 절차로만 생성한다.
+        dto.setRole(Role.USER);
         Member member = memberService.memberCreate(dto);
         CommonResDto commonResDto = new CommonResDto(HttpStatus.CREATED, "success created", member.getId());
 

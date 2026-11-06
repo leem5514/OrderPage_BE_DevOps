@@ -48,14 +48,17 @@ public class JwtAuthFilter extends GenericFilter {
                 Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
-            filterChain.doFilter(request, response);
         } catch (Exception e) {
+            SecurityContextHolder.clearContext();
             log.error(e.getMessage());
             HttpServletResponse httpServletResponse = (HttpServletResponse) response;
             httpServletResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
             httpServletResponse.setContentType("application/json");
             httpServletResponse.getWriter().write("token error");
+            return;
         }
-
+        // 업무 처리/DB 장애를 인증 실패(401)로 바꾸면 5xx 관측과 장애 알림이 왜곡된다.
+        // 토큰 검증이 끝난 뒤의 예외는 정상적인 서버 오류 처리로 전달한다.
+        filterChain.doFilter(request, response);
     }
 }

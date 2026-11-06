@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import javax.net.ssl.SSLContext;
 
 // 주문 시 재고 차감을 비동기로 RDB에 반영하기 위한 RabbitMQ 설정.
 // 처리 중 예외가 나면 실패 메시지는 DLQ 로 보내 유실 없이 추적할 수 있게 한다.
@@ -84,7 +85,10 @@ public class RabbitMqConfig {
         factory.setVirtualHost(virtualHost);
         if (sslEnabled) {
             // Amazon MQ for RabbitMQ는 AMQPS(5671)를 사용하므로 배포 환경에서는 SSL을 켠다.
-            factory.getRabbitConnectionFactory().useSslProtocol();
+            // 이 프로젝트의 구버전 클라이언트는 인자 없는 useSslProtocol이 인증서를 검증하지 않는다.
+            // JVM 신뢰 저장소와 호스트명 검증을 사용해 Amazon MQ의 서버 신원을 확인한다.
+            factory.getRabbitConnectionFactory().useSslProtocol(SSLContext.getDefault());
+            factory.getRabbitConnectionFactory().enableHostnameVerification();
         }
         return factory;
     }

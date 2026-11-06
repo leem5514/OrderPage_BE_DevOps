@@ -42,7 +42,7 @@ public class ProductService {
     }
 
     // 상품 등록 : 이미지를 로컬 디스크에 거치지 않고 바로 S3로 업로드한다.
-    // AWS_ACCESS_KEY / AWS_SECRET_KEY / AWS_S3_BUCKET 환경변수만 채워주면 별도 코드 수정 없이 동작한다.
+    // AWS_S3_BUCKET과 SDK 기본 자격증명 체인(EKS IRSA 또는 로컬 자격증명)을 사용한다.
     public Product productCreate(ProductSaveDto dto) {
         MultipartFile image = dto.getProductImage();
         Product product = productRepository.save(dto.toEntity());
