@@ -59,7 +59,7 @@ docker compose config --quiet
 ## 다음 인프라 단계의 배포 조건
 
 1. Prometheus endpoint는 익명 403이다. annotation만으로 수집되지 않는다. 내부 관리 경로의 인증/포트/노출 범위를 함께 설계한다.
-2. 기존 liveness/readiness가 모두 /actuator/health다. DB 장애로 전체 Pod를 재시작하지 않도록 상태 그룹을 분리한다.
+2. 후속 단계에서 liveness/readiness를 분리하고 DB 중지/복구와 SIGTERM 종료를 검증했다. [결과](lifecycle-readiness.md). EKS/ALB 실제 전파와 롤링 배포 검증은 남아 있다.
 3. S3 getUrl()은 서명 URL이 아니다. private bucket에 업로드만 허용하면 브라우저 이미지 조회는 403이다. 제한된 객체 읽기 제공 방식을 확정한다.
 4. ddl-auto=update를 다중 Pod에서 무심코 실행하지 않는다. 최초 schema 준비와 후속 validate 절차를 정한다.
 5. 외부 의존성 장애/중복 메시지까지의 재고 정합성은 입증하지 않았다. 부하는 먼저 읽기 API로 시작하고 주문 실험은 정합성 검증을 거친다.

@@ -41,6 +41,8 @@ services:
 
   app:
     build: .
+    # Spring 종료 단계(20s)와 연결/자원 정리 시간을 확보한다. 기본 10s의 강제 종료 방지.
+    stop_grace_period: 60s
     ports:
       - '8080:8080'
     environment:

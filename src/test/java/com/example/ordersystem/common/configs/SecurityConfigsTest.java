@@ -10,6 +10,10 @@ import com.example.ordersystem.member.repository.MemberRepository;
 import com.example.ordersystem.member.domain.Role;
 import org.springframework.http.MediaType;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.actuate.health.HealthContributor;
+import org.springframework.boot.actuate.health.HealthContributorRegistry;
+import org.springframework.boot.actuate.health.HealthIndicator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -31,6 +35,26 @@ class SecurityConfigsTest {
 
     @Autowired
     private MemberRepository memberRepository;
+
+    @Autowired
+    private HealthContributorRegistry healthContributors;
+
+    @Test
+    void databaseOutageAffectsReadinessButNotLiveness() throws Exception {
+        mockMvc.perform(get("/actuator/health/readiness")).andExpect(status().isOk());
+        HealthContributor original = healthContributors.unregisterContributor("db");
+        healthContributors.registerContributor("db", (HealthIndicator) () -> Health.down().build());
+        try {
+            mockMvc.perform(get("/actuator/health/liveness"))
+                    .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("UP"));
+            mockMvc.perform(get("/actuator/health/readiness"))
+                    .andExpect(status().isServiceUnavailable()).andExpect(jsonPath("$.status").value("DOWN"));
+        } finally {
+            healthContributors.unregisterContributor("db");
+            healthContributors.registerContributor("db", original);
+        }
+        mockMvc.perform(get("/actuator/health/readiness")).andExpect(status().isOk());
+    }
 
     @Test
     @Transactional

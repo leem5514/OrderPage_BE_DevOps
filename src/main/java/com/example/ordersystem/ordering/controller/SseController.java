@@ -7,6 +7,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 //import org.springframework.amqp.rabbit.listener.MessageListenerContainer;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -35,6 +40,7 @@ public class SseController implements MessageListener {
     //SseEmitter 은 연결된 사용자 정보를 의미
     // ConcurrentHashMap은 Thread-SAFE 한 MAP(동시성 이슈 발생X)
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
+    private boolean shuttingDown;
     private final RedisMessageListenerContainer redisMessageListenerContainer;
 //    private void subscribeChannel(String email) {
 //        MessageListenerAdapter listenerAdapter = createList
@@ -64,13 +70,22 @@ public class SseController implements MessageListener {
     }
 
     @GetMapping("/subscribe")
-    public SseEmitter subscribe() {
-        SseEmitter emitter = new SseEmitter(14400*60*1000L); // 30분 정도 emitter 유효시간 설정
+    public synchronized ResponseEntity<SseEmitter> subscribe() {
+        // 종료 정리와 구독 등록을 같은 lock으로 보호해, 정리 직후 새 연결이 남지 않게 한다.
+        if (shuttingDown) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
+        SseEmitter emitter = new SseEmitter(14400*60*1000L); // 기존 10일 유지시간. 앱 종료 시에는 별도로 즉시 정리한다.
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-        emitters.put(email, emitter);
-        emitter.onCompletion(()->emitters.remove(email));
-        emitter.onTimeout(()->emitters.remove(email));
+        SseEmitter previous = emitters.put(email, emitter);
+        // 이전 연결의 지연된 callback이 새 연결을 지우지 않도록 객체까지 비교한다.
+        emitter.onCompletion(()->emitters.remove(email, emitter));
+        emitter.onTimeout(()->emitters.remove(email, emitter));
+        emitter.onError(error -> emitters.remove(email, emitter));
+        if (previous != null) {
+            previous.complete();
+        }
         try{
             emitter.send(SseEmitter.event().name("connect").data("connected"));
         }catch(IOException e) {
@@ -78,8 +93,17 @@ public class SseController implements MessageListener {
         }
         // subscribe 하자마자 listen 실시(redis 을 대상으로도)
         subscribeChannel(email);
-        return emitter;
+        return ResponseEntity.ok().contentType(MediaType.TEXT_EVENT_STREAM).body(emitter);
 
+    }
+
+    @EventListener(ContextClosedEvent.class)
+    public synchronized void closeConnections() {
+        // ContextClosedEvent는 웹 서버의 graceful stop보다 먼저 전달된다.
+        // 장시간 유지되는 SSE를 끝내야 HTTP drain이 연결 만료까지 기다리지 않는다.
+        shuttingDown = true;
+        emitters.values().forEach(SseEmitter::complete);
+        emitters.clear();
     }
 
     // 실 사용자에게 메세지를 전송. eventType 으로 "ordered"(신규주문, 관리자용) / "order-cancelled"(주문취소, 구매자용) 구분.
