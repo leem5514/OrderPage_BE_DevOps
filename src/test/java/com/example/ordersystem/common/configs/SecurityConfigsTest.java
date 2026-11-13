@@ -24,7 +24,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(properties = {
         "management.health.redis.enabled=false",
-        "management.health.rabbit.enabled=false"
+        "management.health.rabbit.enabled=false",
+        "management.metrics.export.prometheus.enabled=true"
 })
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -80,8 +81,10 @@ class SecurityConfigsTest {
     }
 
     @Test
-    void prometheusEndpointRequiresAuthentication() throws Exception {
+    void prometheusEndpointAllowsInternalScraping() throws Exception {
         mockMvc.perform(get("/actuator/prometheus"))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/actuator/metrics"))
                 .andExpect(status().isForbidden());
     }
 
