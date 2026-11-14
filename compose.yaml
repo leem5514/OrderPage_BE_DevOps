@@ -9,7 +9,7 @@ services:
       - 'MARIADB_DATABASE=ordersystem'
       - 'MARIADB_ROOT_PASSWORD=1234'
     ports:
-      - '3307:3306' # 호스트에 이미 mysqld(3306)가 떠 있는 경우가 많아 호스트 포트만 3307로 바꿈. 컨테이너 간 통신은 mariadb:3306 그대로 사용
+      - '127.0.0.1:3307:3306' # 로컬 테스트 전용. 컨테이너 간 통신은 mariadb:3306 그대로 사용
     volumes:
       - mariadb_data:/var/lib/mysql
     healthcheck:
@@ -21,7 +21,7 @@ services:
   redis:
     image: 'redis:7-alpine'
     ports:
-      - '6379:6379'
+      - '127.0.0.1:6379:6379'
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -31,8 +31,8 @@ services:
   rabbitmq:
     image: 'rabbitmq:3-management-alpine'
     ports:
-      - '5673:5672' # 호스트에 이미 다른 rabbitmq(5672)가 떠 있어 호스트 포트만 5673으로 바꿈
-      - '15673:15672' # 관리 콘솔 (guest/guest), http://localhost:15673
+      - '127.0.0.1:5673:5672' # 로컬 테스트 전용
+      - '127.0.0.1:15673:15672' # 관리 콘솔 (guest/guest), http://localhost:15673
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
@@ -44,7 +44,7 @@ services:
     # Spring 종료 단계(20s)와 연결/자원 정리 시간을 확보한다. 기본 10s의 강제 종료 방지.
     stop_grace_period: 60s
     ports:
-      - '8080:8080'
+      - '127.0.0.1:8080:8080'
     environment:
       DB_URL: 'jdbc:mariadb://mariadb:3306/ordersystem'
       DB_USERNAME: 'root'
