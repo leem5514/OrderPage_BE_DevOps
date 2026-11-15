@@ -39,7 +39,15 @@ out/
 ### Runtime ###
 logs/
 .env
+.env.*
 !.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+src/main/resources/application-*.yml
+src/main/resources/application-*.yaml
 
 ### VS Code ###
 .vscode/
