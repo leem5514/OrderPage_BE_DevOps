@@ -10,14 +10,15 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import javax.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 
 @ControllerAdvice
+@Slf4j
 public class CommonExceptionHandler {
 
     // controller 단에서 발생하는 모든 EntityNotFoundException catch
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<CommonErrorDto> entityNotFoundHandler(EntityNotFoundException e) {
-        e.printStackTrace();
         CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.NOT_FOUND.value(), e.getMessage());
         return new ResponseEntity<>(commonErrorDto, HttpStatus.NOT_FOUND);
     }
@@ -31,15 +32,14 @@ public class CommonExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<CommonErrorDto> illegalHandler(IllegalArgumentException e) {
-        e.printStackTrace();
         CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<CommonErrorDto> validHandler(MethodArgumentNotValidException e) {
-        e.printStackTrace();
-        CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST.value(), e.getFieldError().getDefaultMessage());
+        // BindingResult의 예외 문자열에는 거절된 비밀번호 등 입력값이 포함될 수 있다.
+        CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST.value(), "입력값을 확인해주세요.");
         return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
     }
 
@@ -48,14 +48,15 @@ public class CommonExceptionHandler {
     // 사이의 아주 좁은 타이밍에 다른 트랜잭션이 끼어드는 잔여 레이스에 대한 최후 방어선이다.
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<CommonErrorDto> dataIntegrityViolationHandler(DataIntegrityViolationException e) {
-        e.printStackTrace();
+        log.warn("Data integrity conflict");
         CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.CONFLICT.value(), "다른 요청과 겹쳐서 처리하지 못했습니다. 다시 시도해주세요.");
         return new ResponseEntity<>(commonErrorDto, HttpStatus.CONFLICT);
     }
     @ExceptionHandler(Exception.class)
     public ResponseEntity<CommonErrorDto> exceptionHandler(Exception e) {
-        e.printStackTrace();
-        CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST.value(), "argument is not valid");
+        // 예외 메시지/stack trace에 SQL과 개인정보가 포함될 수 있어 종류만 기록한다.
+        log.error("Unhandled request failure: {}", e.getClass().getSimpleName());
+        CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.INTERNAL_SERVER_ERROR.value(), "요청을 처리하지 못했습니다.");
         return new ResponseEntity<>(commonErrorDto, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
