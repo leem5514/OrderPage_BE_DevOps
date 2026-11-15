@@ -50,7 +50,8 @@ public class JwtAuthFilter extends GenericFilter {
             }
         } catch (Exception e) {
             SecurityContextHolder.clearContext();
-            log.error(e.getMessage());
+            // 파서 오류 메시지에 요청에서 가져온 토큰 조각이 포함될 수 있다.
+            log.warn("JWT authentication rejected");
             HttpServletResponse httpServletResponse = (HttpServletResponse) response;
             httpServletResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
             httpServletResponse.setContentType("application/json");

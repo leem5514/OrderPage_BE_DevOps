@@ -73,7 +73,6 @@ public class MemberController {
     @GetMapping("/member/list")
     public ResponseEntity<?> memberList(Pageable pageable) {
         Page<MemberListDto> listDto = memberService.memberList(pageable);
-        memberService.memberList(pageable);
         CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "회원 목록 조회 성공 !", listDto);
         ResponseEntity<CommonResDto> result = new ResponseEntity<>(commonResDto, HttpStatus.OK);
         return result;
