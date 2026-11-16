@@ -4,6 +4,7 @@ import com.example.ordersystem.common.dto.CommonErrorDto;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -34,6 +35,14 @@ public class CommonExceptionHandler {
     public ResponseEntity<CommonErrorDto> illegalHandler(IllegalArgumentException e) {
         CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<CommonErrorDto> unreadableBodyHandler(HttpMessageNotReadableException e) {
+        // 잘못된 JSON/숫자 범위/누락된 body는 클라이언트 오류다.
+        // Jackson 예외 원문에는 입력값이 들어갈 수 있어 로그와 응답에 포함하지 않는다.
+        CommonErrorDto error = new CommonErrorDto(HttpStatus.BAD_REQUEST.value(), "요청 본문을 확인해주세요.");
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

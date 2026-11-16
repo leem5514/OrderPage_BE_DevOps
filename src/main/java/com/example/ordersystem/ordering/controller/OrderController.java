@@ -1,18 +1,15 @@
 package com.example.ordersystem.ordering.controller;
 
 import com.example.ordersystem.common.dto.CommonResDto;
-import com.example.ordersystem.member.dto.MemberSaveDto;
 import com.example.ordersystem.ordering.domain.Ordering;
 import com.example.ordersystem.ordering.dto.OrderListResDto;
 import com.example.ordersystem.ordering.dto.OrderSaveReqDto;
 import com.example.ordersystem.ordering.service.OrderingService;
-import com.example.ordersystem.product.domain.Product;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -25,7 +22,8 @@ public class OrderController {
     }
 
     @PostMapping("/order/create") // 생성
-    public ResponseEntity<?> orderingCreate(@RequestBody List<@Valid OrderSaveReqDto> dto) {
+    public ResponseEntity<?> orderingCreate(@RequestBody List<OrderSaveReqDto> dto) {
+        // 기존 배열 요청을 유지한다. 전체 항목 검증은 Service에서 부작용 전에 수행한다.
         Ordering ordering = orderingService.orderCreate(dto);
         CommonResDto commonResDto = new CommonResDto(HttpStatus.CREATED, "created order", ordering.getId());
         return new ResponseEntity<>(commonResDto, HttpStatus.CREATED);

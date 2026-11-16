@@ -12,6 +12,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,6 +23,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -30,6 +34,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -58,6 +63,23 @@ class OrderingServiceTest {
     @AfterEach
     void tearDown() {
         SecurityContextHolder.clearContext();
+    }
+
+    static Stream<List<OrderSaveReqDto>> invalidOrders() {
+        return Stream.of(null, Collections.emptyList(), Collections.singletonList(null),
+                Collections.singletonList(OrderSaveReqDto.builder().productCount(1).build()),
+                Collections.singletonList(OrderSaveReqDto.builder().productId(0L).productCount(1).build()),
+                Collections.singletonList(OrderSaveReqDto.builder().productId(1L).productCount(0).build()),
+                Arrays.asList(OrderSaveReqDto.builder().productId(1L).productCount(1).build(),
+                        OrderSaveReqDto.builder().productId(2L).productCount(-1).build()));
+    }
+
+    @ParameterizedTest
+    @MethodSource("invalidOrders")
+    void rejectsTheWholeOrderBeforeAnyRepositoryOrStockCall(List<OrderSaveReqDto> items) {
+        assertThatThrownBy(() -> orderingService.orderCreate(items))
+                .isInstanceOf(IllegalArgumentException.class);
+        verifyNoInteractions(memberRepository, orderingRepository, stockProcessor, sseController);
     }
 
     @Test

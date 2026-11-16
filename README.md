@@ -2,6 +2,8 @@
 
 Spring Boot 기반 주문 서비스 백엔드입니다.
 
+2026-11-16 주문 입력 검증을 보강했습니다. 잘못된 목록·상품 ID·수량은 업무 처리 전에 400으로 거부하며, [변경 이유와 전체 테스트 50건 결과](docs/order-input-validation.md)를 기록했습니다. 비밀번호·실행 의존성 등 나머지 배포 전 보안 항목은 별도 해결이 필요합니다.
+
 2026-11-06 새 요구사항에 따른 변경·검증·남은 배포 조건은 [배포 점검 기록](docs/deployment-readiness.md)을 참고하세요. 아직 AWS 배포 완료 상태가 아닙니다.
 
 Java 11/Linux 이미지 빌드와 로컬 서비스 통합 확인 13개는 [Docker 실기동 기록](docs/container-verification.md)에 정리했습니다. 기존 개발 DB를 보존하는 `compose.verify.yaml`과 `scripts/container-smoke.mjs`로 재현할 수 있습니다.
