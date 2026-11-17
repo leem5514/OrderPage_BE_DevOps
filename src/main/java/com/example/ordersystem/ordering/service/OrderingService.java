@@ -49,6 +49,19 @@ public class OrderingService {
     // ORDER_STOCK_PROCESSING_MODE 값에 따라 RDB_SYNC 또는 REDIS_ASYNC 구현 하나가 주입된다.
     // 주문 API와 데이터는 그대로 두고 재고 처리 방식만 바꿔야 부하 테스트 비교 조건이 같아진다.
     public Ordering orderCreate(List<OrderSaveReqDto> dtos) {
+        // JSON 배열의 항목 @Valid만으로는 현재 MVC에서 검증이 실행되지 않는다.
+        // 모든 항목을 먼저 확인해 뒤 항목이 잘못된 경우에도 앞 상품의 재고/DB/MQ를 건드리지 않는다.
+        // 공통 Service 진입점이므로 RDB_SYNC와 REDIS_ASYNC 모두 같은 규칙을 적용한다.
+        if (dtos == null || dtos.isEmpty()) {
+            throw new IllegalArgumentException("주문 항목을 한 개 이상 입력해주세요.");
+        }
+        for (OrderSaveReqDto item : dtos) {
+            if (item == null || item.getProductId() == null || item.getProductId() <= 0
+                    || item.getProductCount() <= 0) {
+                // 요청값을 오류 메시지에 포함하지 않는다.
+                throw new IllegalArgumentException("상품 ID와 주문 수량은 양수여야 합니다.");
+            }
+        }
 
         String memberEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Member member = memberRepository.findByEmail(memberEmail).orElseThrow(()-> new EntityNotFoundException("회원이 존재하지 않습니다."));

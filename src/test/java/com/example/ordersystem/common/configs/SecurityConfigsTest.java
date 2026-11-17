@@ -93,4 +93,11 @@ class SecurityConfigsTest {
         mockMvc.perform(get("/member/myInfo"))
                 .andExpect(status().isForbidden());
     }
+
+    @Test
+    void orderEndpointStillRequiresAuthentication() throws Exception {
+        mockMvc.perform(post("/order/create").contentType(MediaType.APPLICATION_JSON)
+                        .content("[{\"productId\":1,\"productCount\":1}]"))
+                .andExpect(status().isForbidden());
+    }
 }
