@@ -13,10 +13,8 @@ import com.example.ordersystem.member.dto.MemberSaveDto;
 import com.example.ordersystem.member.repository.MemberRepository;
 import com.example.ordersystem.member.service.MemberService;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts; 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -25,7 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,8 +39,6 @@ public class MemberController {
     @Qualifier("2")
     private final RedisTemplate<String, Object> redisTemplate;
 
-    @Value("${jwt.secretKeyRt}")
-    private String secretKeyRt;
 
     @Autowired
     public MemberController(MemberService memberService, MemberRepository memberRepository, JwtTokenProvider jwtTokenProvider, @Qualifier("2") RedisTemplate<String, Object> redisTemplate) {
@@ -121,7 +117,7 @@ public class MemberController {
         Claims claims = null;
         try{
             // 코드를 통해 rt 검증
-            claims = Jwts.parser().setSigningKey(secretKeyRt).parseClaimsJws(rt).getBody(); //getBody 는 payload 에 들어있는 것.
+            claims = jwtTokenProvider.parseRefreshToken(rt); //getBody 는 payload 에 들어있는 것.
         }
         catch (Exception e){
             return new ResponseEntity<>(new CommonErrorDto(HttpStatus.UNAUTHORIZED.value(),"invalid refresh token"),HttpStatus.UNAUTHORIZED);

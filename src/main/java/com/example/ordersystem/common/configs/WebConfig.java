@@ -1,5 +1,7 @@
 package com.example.ordersystem.common.configs;
 
+import com.example.ordersystem.common.auth.BoundedPasswordEncoder;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
@@ -11,6 +13,6 @@ public class WebConfig {
     @Bean
     public PasswordEncoder makePassword() {
 
-        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+        return new BoundedPasswordEncoder(PasswordEncoderFactories.createDelegatingPasswordEncoder());
     }
 }

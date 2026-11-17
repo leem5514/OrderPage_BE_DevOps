@@ -12,7 +12,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 
 // redis 로 우선 처리한 재고 차감을 RabbitMQ 를 통해 비동기로 RDB 에 반영한다.
 // (Redis 는 응답 속도를 위한 실시간 재고, RDB 는 최종 정합성을 위한 기준 데이터)

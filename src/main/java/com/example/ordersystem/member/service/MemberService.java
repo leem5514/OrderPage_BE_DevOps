@@ -1,6 +1,7 @@
 package com.example.ordersystem.member.service;
 
 import com.example.ordersystem.member.domain.Member;
+import com.example.ordersystem.common.auth.PasswordPolicy;
 import com.example.ordersystem.member.dto.MemberListDto;
 import com.example.ordersystem.member.dto.MemberLoginDto;
 import com.example.ordersystem.member.dto.MemberResetPasswordDto;
@@ -14,7 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,12 +32,10 @@ public class MemberService {
     }
 
     public Member memberCreate(MemberSaveDto dto) {
+        PasswordPolicy.validate(dto.getPassword());
 
         if (memberRepository.findByEmail(dto.getEmail()).isPresent()) {
             throw new IllegalArgumentException("이미 존재하는 이메일 입니다");
-        }
-        if (dto.getPassword().length() < 8){
-            throw new IllegalArgumentException("비밀번호의 길이가 짧습니다.");
         }
         Member savedMember = memberRepository.save(dto.toEntity(passwordEncoder.encode(dto.getPassword())));
         return savedMember;
@@ -48,6 +47,7 @@ public class MemberService {
     }
 
     public Member login(MemberLoginDto dto) {
+        PasswordPolicy.validate(dto.getPassword());
         // email 존재 여부
         Member member = memberRepository.findByEmail(dto.getEmail()).orElseThrow(()->new EntityNotFoundException("존재하지 않는 이메일입니다."));
 
@@ -65,13 +65,12 @@ public class MemberService {
     }
 
     public void resetPassword(MemberResetPasswordDto dto) {
+        PasswordPolicy.validate(dto.getAsIsPassword());
+        PasswordPolicy.validate(dto.getToBePassword());
         Member member = memberRepository.findByEmail(dto.getEmail()).orElseThrow(()->new EntityNotFoundException("존재하지 않는 이메일입니다."));
 
         if (!passwordEncoder.matches(dto.getAsIsPassword(), member.getPassword())) {
             throw new IllegalArgumentException("기존 비밀번호가 일치하지 않습니다");
-        }
-        if (dto.getToBePassword().length() < 8) {
-            throw new IllegalArgumentException("비밀번호의 길이가 짧습니다.");
         }
         member.updatePassword(passwordEncoder.encode(dto.getToBePassword()));
     }

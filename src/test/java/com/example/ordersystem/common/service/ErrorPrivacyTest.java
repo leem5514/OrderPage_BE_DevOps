@@ -22,7 +22,7 @@ class ErrorPrivacyTest {
         HttpMessageNotReadableException error = new HttpMessageNotReadableException(
                 marker, new MockHttpInputMessage(new byte[0]));
         var response = new CommonExceptionHandler().unreadableBodyHandler(error);
-        assertThat(response.getStatusCodeValue()).isEqualTo(400);
+        assertThat(response.getStatusCode().value()).isEqualTo(400);
         assertThat(response.getBody().getStatus_code()).isEqualTo(400);
         assertThat(response.getBody().getError_message()).isEqualTo("요청 본문을 확인해주세요.");
         assertThat(output.getAll()).doesNotContain(marker);
@@ -38,7 +38,7 @@ class ErrorPrivacyTest {
         assertThat(handler.validHandler(new MethodArgumentNotValidException(parameter, errors))
                 .getBody().getError_message()).doesNotContain(marker);
         var result = handler.exceptionHandler(new RuntimeException(marker));
-        assertThat(result.getStatusCodeValue()).isEqualTo(500);
+        assertThat(result.getStatusCode().value()).isEqualTo(500);
         assertThat(result.getBody().getStatus_code()).isEqualTo(500);
         assertThat(result.getBody().getError_message()).doesNotContain(marker);
         assertThat(output.getAll()).doesNotContain(marker);

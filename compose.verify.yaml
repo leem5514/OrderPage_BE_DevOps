@@ -19,3 +19,5 @@ services:
       BOOTSTRAP_ADMIN_ENABLED: 'false'
       BOOTSTRAP_ADMIN_PASSWORD: ''
       ORDER_STOCK_PROCESSING_MODE: 'REDIS_ASYNC'
+      # Infra ConfigMap과 같은 p95 histogram 설정이 실제 scrape에 나타나는지 확인한다.
+      MANAGEMENT_METRICS_DISTRIBUTION_PERCENTILESHISTOGRAM_HTTP_SERVER_REQUESTS: 'true'

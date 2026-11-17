@@ -5,7 +5,7 @@ import com.example.ordersystem.product.repository.ProductRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 
 /**
  * Before 비교군: 요청 트랜잭션 안에서 RDB 행 잠금, 재고 검증, 차감을 모두 끝낸다.

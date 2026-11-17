@@ -8,7 +8,7 @@ import com.example.ordersystem.product.repository.ProductRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 
 /**
  * After 비교군: Redis Lua로 실시간 재고를 원자적으로 차감하고 RabbitMQ로 RDB에 반영한다.

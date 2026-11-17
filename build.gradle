@@ -1,21 +1,15 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '2.7.11'
-	id 'io.spring.dependency-management' version '1.0.15.RELEASE'
+	id 'org.springframework.boot' version '4.1.2'
+	id 'io.spring.dependency-management' version '1.1.7'
 }
 
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
 
 java {
-	sourceCompatibility = '11';
+	toolchain { languageVersion = JavaLanguageVersion.of(21) }
 }
-
-//configurations {
-//	compileOnly {
-//		extendsFrom annotationProcessor
-//	}
-//}
 
 repositories {
 	mavenCentral()
@@ -23,13 +17,15 @@ repositories {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	compileOnly 'org.projectlombok:lombok'
-	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+	// Boot BOM보다 뒤에 나온 보안 수정. 3.x 계열을 유지해 JDBC 전환 범위를 제한한다.
+	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client:3.5.11'
 	runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
 	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
 	testRuntimeOnly 'com.h2database:h2'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
@@ -39,15 +35,23 @@ dependencies {
 	// redis 의존성 추가
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	// jwt 토큰 관련 라이브러리 추가
-	implementation 'io.jsonwebtoken:jjwt:0.9.1'
+	implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
 	// 파일 처리를 위한 aws 의존성 추가
-	implementation 'software.amazon.awssdk:s3:2.17.58'
+	implementation platform('software.amazon.awssdk:bom:2.59.2')
+	implementation 'software.amazon.awssdk:s3'
 	// IRSA의 Web Identity 토큰을 임시 AWS 자격증명으로 교환할 때 필요한 모듈.
-	implementation 'software.amazon.awssdk:sts:2.17.58'
+	implementation 'software.amazon.awssdk:sts'
 	// 동시성 제어를 위한 이벤트 기반 rabbitmq 의존성 추가
 	implementation 'org.springframework.boot:spring-boot-starter-amqp'
+	// 5.30.0의 프레임 파싱·TLS 관련 권고를 수정한 같은 5.x 클라이언트.
+	implementation 'com.rabbitmq:amqp-client:5.37.1'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+// Docker COPY가 실행 가능한 JAR 하나를 정확히 선택하도록 이름을 고정한다.
+tasks.named('bootJar') { archiveFileName = 'app.jar' }
