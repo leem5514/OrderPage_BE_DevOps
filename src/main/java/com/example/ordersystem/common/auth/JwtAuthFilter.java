@@ -1,9 +1,7 @@
 package com.example.ordersystem.common.auth;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -13,9 +11,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,8 +22,9 @@ import java.util.List;
 @Slf4j
 public class JwtAuthFilter extends GenericFilter {
 
-    @Value("${jwt.secretKey}")
-    private String secretKey;
+    private final JwtTokenProvider tokenProvider;
+
+    public JwtAuthFilter(JwtTokenProvider tokenProvider) { this.tokenProvider = tokenProvider; }
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain) throws IOException, ServletException {
@@ -38,9 +37,7 @@ public class JwtAuthFilter extends GenericFilter {
                     throw new IllegalArgumentException("Bearer 형식이 아닙니다.");
                 }
                 String token = bearerToken.substring(7);
-                // token 검증 및 claim(사용자정보) 추출
-                // 토큰 생성 시 사용한 secretKey 값을 넣어 토큰 검증에 사용A
-                Claims claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody(); //getBody 는 payload 에 들어있는 것.
+                Claims claims = tokenProvider.parseAccessToken(token);
                 //Authentication 객체 생성(userDetails 객체도 필요)
                 List<GrantedAuthority> authorities = new ArrayList<>();
                 authorities.add(new SimpleGrantedAuthority("ROLE_"+claims.get("role")));

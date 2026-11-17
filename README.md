@@ -2,11 +2,13 @@
 
 Spring Boot 기반 주문 서비스 백엔드입니다.
 
-2026-11-16 주문 입력 검증을 보강했습니다. 잘못된 목록·상품 ID·수량은 업무 처리 전에 400으로 거부하며, [변경 이유와 전체 테스트 50건 결과](docs/order-input-validation.md)를 기록했습니다. 비밀번호·실행 의존성 등 나머지 배포 전 보안 항목은 별도 해결이 필요합니다.
+2026-11-17 **Java 21 / Spring Boot 4.1.2 보안 기반 갱신**을 검증했습니다. 테스트 68건, 실제 Docker 기능 13개·보안/지표 6개, DB 장애·정상 종료 검사를 통과했습니다. [변경 이유·JWT 재로그인·비밀번호 정책·검증 범위](docs/security-baseline.md)를 먼저 확인하세요. AWS 배포 완료를 의미하지 않습니다.
+
+2026-11-16 주문 입력 검증을 보강했습니다. 잘못된 목록·상품 ID·수량은 업무 처리 전에 400으로 거부하며, [변경 이유와 전체 테스트 50건 결과](docs/order-input-validation.md)를 기록했습니다. 이번 보안 기반 갱신 이전의 테스트 기록입니다.
 
 2026-11-06 새 요구사항에 따른 변경·검증·남은 배포 조건은 [배포 점검 기록](docs/deployment-readiness.md)을 참고하세요. 아직 AWS 배포 완료 상태가 아닙니다.
 
-Java 11/Linux 이미지 빌드와 로컬 서비스 통합 확인 13개는 [Docker 실기동 기록](docs/container-verification.md)에 정리했습니다. 기존 개발 DB를 보존하는 `compose.verify.yaml`과 `scripts/container-smoke.mjs`로 재현할 수 있습니다.
+초기 Java 11/Linux 이미지 빌드와 로컬 서비스 통합 확인 13개는 [Docker 실기동 기록](docs/container-verification.md)에 정리했습니다. 기존 개발 DB를 보존하는 `compose.verify.yaml`과 `scripts/container-smoke.mjs`로 재현할 수 있습니다.
 
 이어 [종료 처리·readiness/liveness 검증](docs/lifecycle-readiness.md)을 완료했습니다. 실제 DB 중지/복구와 SSE가 열린 상태의 SIGTERM 종료를 `scripts/lifecycle-smoke.mjs`로 확인합니다.
 
@@ -16,8 +18,8 @@ EKS 내부 Prometheus 수집 경로와 공개 차단 경계는 [Prometheus 수�
 
 ## Tech Stack
 
-- Java 11
-- Spring Boot 2.7
+- Java 21 LTS
+- Spring Boot 4.1.2
 - Spring Data JPA
 - Spring Security + JWT
 - MariaDB
@@ -27,6 +29,8 @@ EKS 내부 Prometheus 수집 경로와 공개 차단 경계는 [Prometheus 수�
 - Docker
 
 ## Local Build
+
+IntelliJ의 Project SDK와 Gradle JVM을 Java 21로 맞춥니다. Docker와 Jenkins 테스트도 같은 주 버전을 사용합니다.
 
 ```bash
 ./gradlew test

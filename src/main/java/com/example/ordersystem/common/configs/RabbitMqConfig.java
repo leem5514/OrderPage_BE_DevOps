@@ -8,7 +8,7 @@ import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -85,7 +85,7 @@ public class RabbitMqConfig {
         factory.setVirtualHost(virtualHost);
         if (sslEnabled) {
             // Amazon MQ for RabbitMQ는 AMQPS(5671)를 사용하므로 배포 환경에서는 SSL을 켠다.
-            // 이 프로젝트의 구버전 클라이언트는 인자 없는 useSslProtocol이 인증서를 검증하지 않는다.
+            // 인자 없는 TLS 설정에 의존하지 않고 검증할 신뢰 저장소를 명시한다.
             // JVM 신뢰 저장소와 호스트명 검증을 사용해 Amazon MQ의 서버 신원을 확인한다.
             factory.getRabbitConnectionFactory().useSslProtocol(SSLContext.getDefault());
             factory.getRabbitConnectionFactory().enableHostnameVerification();
@@ -94,14 +94,15 @@ public class RabbitMqConfig {
     }
 
     @Bean
-    public Jackson2JsonMessageConverter jackson2JsonMessageConverter() {
-        return new Jackson2JsonMessageConverter();
+    public JacksonJsonMessageConverter jacksonJsonMessageConverter() {
+        // 큐의 type header로 앱 외부의 임의 클래스를 역직렬화하지 않는다.
+        return new JacksonJsonMessageConverter("com.example.ordersystem.ordering.dto");
     }
 
     @Bean
     public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
-        rabbitTemplate.setMessageConverter(jackson2JsonMessageConverter());
+        rabbitTemplate.setMessageConverter(jacksonJsonMessageConverter());
         return rabbitTemplate;
     }
 }

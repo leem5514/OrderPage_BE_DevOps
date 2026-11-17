@@ -71,7 +71,13 @@ try {
     await check('invalid refresh token returns 401', () => request('/refresh-token', {
         method: 'POST', body: { refreshToken: 'invalid' }, status: 401
     }));
-    await check('Prometheus remains protected', () => request('/actuator/prometheus', { status: 403 }));
+    await check('Prometheus allows internal scraping while other metrics require authentication', async () => {
+        // 공개 ALB의 /actuator 차단은 Infra에서 검증한다. 이 localhost는 내부 Service 경로와 같다.
+        const response = await fetch(base + '/actuator/prometheus', { signal: AbortSignal.timeout(15000) });
+        assert.equal(response.status, 200);
+        assert.match(await response.text(), /^jvm_memory_used_bytes\{/m);
+        await request('/actuator/metrics', { status: 403 });
+    });
     await check('allowed origin passes CORS preflight', async () => {
         const response = await request('/member/myInfo', { method: 'OPTIONS', headers: {
             Origin: 'http://localhost:8081', 'Access-Control-Request-Method': 'GET',

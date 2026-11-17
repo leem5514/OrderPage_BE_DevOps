@@ -11,14 +11,19 @@ server:
       min-spare: ${TOMCAT_THREADS_MIN_SPARE:20}
     accept-count: ${TOMCAT_ACCEPT_COUNT:500}
 spring:
+  jackson:
+    # Boot 4에서도 기존 Vue 응답(날짜·enum·필드)의 Jackson 2 기본 표현을 유지한다.
+    use-jackson2-defaults: true
   lifecycle:
     # 종료 단계별 제한이다. 프로세스 전체 제한이 아니므로 컨테이너에는 더 긴 시간을 준다.
     timeout-per-shutdown-phase: 20s
-  redis:
-    host: ${REDIS_HOST:localhost}
-    port: ${REDIS_PORT:6379}
-    password: ${REDIS_PASSWORD:}
-    ssl: ${REDIS_SSL_ENABLED:false}
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      ssl:
+        enabled: ${REDIS_SSL_ENABLED:false}
   # rabbitMQ 환경설정 (재고 감소 이벤트 비동기 처리용)
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
@@ -82,9 +87,9 @@ management:
 
 jwt:
   expiration: 30
-  secretKey: ${JWT_SECRET_KEY:local_dev_secret_key_change_me}
+  secretKey: ${JWT_SECRET_KEY:local_only_access_key_not_for_deployment_00000000}
   expirationRt: 14400
-  secretKeyRt: ${JWT_SECRET_KEY_RT:local_dev_refresh_secret_change_me}
+  secretKeyRt: ${JWT_SECRET_KEY_RT:local_only_refresh_key_not_for_deployment_11111111}
 
 # 인증은 AWS SDK 기본 체인으로 처리한다. EKS에서는 IRSA를 사용하고 고정 키를 넣지 않는다.
 cloud:

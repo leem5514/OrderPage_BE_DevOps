@@ -57,8 +57,8 @@ services:
       RABBITMQ_PASSWORD: 'guest'
       RABBITMQ_VHOST: '/'
       ORDER_STOCK_PROCESSING_MODE: '${ORDER_STOCK_PROCESSING_MODE:-REDIS_ASYNC}'
-      JWT_SECRET_KEY: 'local_dev_secret_key_change_me'
-      JWT_SECRET_KEY_RT: 'local_dev_refresh_secret_change_me'
+      JWT_SECRET_KEY: 'local_only_access_key_not_for_deployment_00000000'
+      JWT_SECRET_KEY_RT: 'local_only_refresh_key_not_for_deployment_11111111'
       # 로컬 전용 SDK 표준 환경변수. EKS에는 고정 키 대신 IRSA를 연결한다.
       AWS_ACCESS_KEY_ID: '${AWS_ACCESS_KEY_ID:-}'
       AWS_SECRET_ACCESS_KEY: '${AWS_SECRET_ACCESS_KEY:-}'

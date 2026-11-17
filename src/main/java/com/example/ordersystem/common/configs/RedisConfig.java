@@ -1,8 +1,5 @@
 package com.example.ordersystem.common.configs;
 
-import com.example.ordersystem.ordering.controller.SseController;
-import com.fasterxml.jackson.databind.ObjectMapper;
-//import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -13,22 +10,21 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
 public class RedisConfig {
-    // application.yml 의 spring.redis.host 의 정보를 가져옴.
-    @Value("${spring.redis.host}")
+    // application.yml 의 spring.data.redis.host 의 정보를 가져옴.
+    @Value("${spring.data.redis.host}")
     public String host;
 
-    @Value("${spring.redis.port}")
+    @Value("${spring.data.redis.port}")
     public int port;
 
-    @Value("${spring.redis.password:}")
+    @Value("${spring.data.redis.password:}")
     private String password;
-    @Value("${spring.redis.ssl:false}")
+    @Value("${spring.data.redis.ssl.enabled:false}")
     private boolean sslEnabled;
 
     // 직접 만든 세 연결 팩토리 모두에 동일한 TLS/인증을 적용한다.
@@ -62,7 +58,8 @@ public class RedisConfig {
     public RedisTemplate<String, Object> redisTemplate(@Qualifier("2") RedisConnectionFactory redisConnectionFactory){
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
         redisTemplate.setKeySerializer(new StringRedisSerializer());
-        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        // 토큰 문자열만 저장한다. 임의 클래스 이름을 신뢰하는 다형성 역직렬화는 사용하지 않는다.
+        redisTemplate.setValueSerializer(new JacksonJsonRedisSerializer<>(String.class));
         redisTemplate.setConnectionFactory(redisConnectionFactory);
         return redisTemplate;
     }
@@ -79,7 +76,8 @@ public class RedisConfig {
     public RedisTemplate<String, Object> stockRedisTemplate(@Qualifier("3") RedisConnectionFactory redisStockFactory){
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
         redisTemplate.setKeySerializer(new StringRedisSerializer());
-        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        // Redis INCR/DECR와 호환되는 JSON 숫자 형식을 유지한다.
+        redisTemplate.setValueSerializer(new JacksonJsonRedisSerializer<>(Number.class));
         redisTemplate.setConnectionFactory(redisStockFactory);
         return redisTemplate;
     }
@@ -95,12 +93,9 @@ public class RedisConfig {
     public RedisTemplate<String, Object> sseRedisTemplate(@Qualifier("4") RedisConnectionFactory sseFactory){
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
         redisTemplate.setKeySerializer(new StringRedisSerializer());
-//        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
 
         // 객체 안 객체 으로 직렬화 이슈발생으로 인해서 아래와 같이 serializer
-        Jackson2JsonRedisSerializer<Object> serializer = new Jackson2JsonRedisSerializer<>(Object.class);
-        ObjectMapper objectMapper = new ObjectMapper();
-        serializer.setObjectMapper(objectMapper);
+        JacksonJsonRedisSerializer<Object> serializer = new JacksonJsonRedisSerializer<>(Object.class);
         redisTemplate.setValueSerializer(serializer);
         redisTemplate.setConnectionFactory(sseFactory);
         return redisTemplate;

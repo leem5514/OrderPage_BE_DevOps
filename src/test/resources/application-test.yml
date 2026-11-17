@@ -9,9 +9,10 @@ spring:
     hibernate:
       ddl-auto: create-drop
     show-sql: false
-  redis:
-    host: localhost
-    port: 6379
+  data:
+    redis:
+      host: localhost
+      port: 6379
   rabbitmq:
     host: localhost
     port: 5672
@@ -21,15 +22,12 @@ spring:
 
 jwt:
   expiration: 30
-  secretKey: test_access_secret_key
+  secretKey: test_only_access_key_not_for_deployment_00000000
   expirationRt: 14400
-  secretKeyRt: test_refresh_secret_key
+  secretKeyRt: test_only_refresh_key_not_for_deployment_11111111
 
 cloud:
   aws:
-    credentials:
-      access-key: test
-      secret-key: test
     region:
       static: ap-northeast-2
     s3:
